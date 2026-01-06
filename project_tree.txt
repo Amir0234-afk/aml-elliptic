@@ -1,0 +1,60 @@
+.
+├── data
+│   ├── processed
+│   └── raw
+│       ├── elliptic_txs_classes.csv
+│       ├── elliptic_txs_edgelist.csv
+│       └── elliptic_txs_features.csv
+├── notebooks
+│   ├── 01_data_cleaning.ipynb
+│   ├── 02_eda_visualization.ipynb
+│   ├── 03_model_selection.ipynb
+│   ├── 04_model_optimization.ipynb
+│   └── 05_evaluation_inference.ipynb
+├── outputs
+│   ├── metrics
+│   │   ├── baselines_AF.json
+│   │   └── baselines_LF.json
+│   ├── models
+│   └── plots
+│       ├── class_distribution.png
+│       ├── model_comparison_f1.png
+│       └── nodes_per_timestep.png
+├── project_tree.txt
+├── README.md
+├── reports
+│   ├── final_report.md
+│   ├── phase01_preprocessing.md
+│   ├── phase02_eda.md
+│   ├── phase03_model_selection.md
+│   ├── phase04_optimization.md
+│   └── phase05_evaluation.md
+├── requirements.txt
+├── results
+│   ├── logs
+│   ├── metrics
+│   ├── model_artifacts
+│   └── visualization
+└── src
+    ├── baselines.py
+    ├── config.py
+    ├── data.py
+    ├── eval.py
+    ├── gnn.py
+    ├── graph_data.py
+    ├── main.py
+    ├── phase01_preprocessing.py
+    ├── phase02_eda.py
+    ├── phase03_models.py
+    ├── phase04_tuning.py
+    ├── phase05_eval_infer.py
+    ├── __pycache__
+    │   ├── baselines.cpython-313.pyc
+    │   ├── config.cpython-313.pyc
+    │   ├── data.cpython-313.pyc
+    │   ├── eval.cpython-313.pyc
+    │   ├── main.cpython-313.pyc
+    │   └── viz.cpython-313.pyc
+    └── viz.py
+
+17 directories, 41 files

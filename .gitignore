@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Data (raw/processed)
+data/raw/
+data/processed/
+
+# Results (optional: keep if you want)
+results/
+outputs/
