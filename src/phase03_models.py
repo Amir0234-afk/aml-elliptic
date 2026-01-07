@@ -26,7 +26,8 @@ from src.eval import compute_metrics, threshold_predictions
 from src.gnn import GCN, SkipGCN, train_gnn
 from src.graph_data import build_graph
 from src.viz import save_model_comparison_bar
-
+from src.repro import set_seed
+from src.runlog import write_run_manifest
 
 def require_tensor(v: Any, name: str) -> Tensor:
     """Runtime + type-narrowing guard for PyG Data optional/union-typed attributes."""
@@ -34,11 +35,6 @@ def require_tensor(v: Any, name: str) -> Tensor:
         return v
     raise TypeError(f"Expected {name} to be torch.Tensor, got {type(v).__name__}")
 
-
-def set_seed(seed: int) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
 
 
 def ensure_dirs(paths: Paths) -> None:
@@ -329,12 +325,18 @@ def run_gnn_models(
 
     return out
 
-
 def main() -> None:
     paths = Paths()
     cfg = ExperimentConfig()
     ensure_dirs(paths)
-    set_seed(cfg.seed)
+    set_seed(cfg.seed, deterministic_torch=False)
+    write_run_manifest(
+        paths.results_dir / "logs",
+        phase="03",
+        cfg=cfg,
+        data_files=[paths.raw_dir / "elliptic_txs_features.csv",paths.raw_dir / "elliptic_txs_edgelist.csv",paths.raw_dir / "elliptic_txs_classes.csv",paths.processed_dir / "elliptic_labeled.parquet",paths.processed_dir / "elliptic_labeled.csv",],
+        extra={"note": "phase 03 baselines and GNN training"},
+    )
 
     df_labeled = load_processed(paths)
     edges_df = load_edges(paths.raw_dir)

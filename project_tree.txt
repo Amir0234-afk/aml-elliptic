@@ -1,6 +1,7 @@
 .
 ├── data
 │   ├── processed
+│   │   └── elliptic_labeled.csv
 │   └── raw
 │       ├── elliptic_txs_classes.csv
 │       ├── elliptic_txs_edgelist.csv
@@ -11,15 +12,6 @@
 │   ├── 03_model_selection.ipynb
 │   ├── 04_model_optimization.ipynb
 │   └── 05_evaluation_inference.ipynb
-├── outputs
-│   ├── metrics
-│   │   ├── baselines_AF.json
-│   │   └── baselines_LF.json
-│   ├── models
-│   └── plots
-│       ├── class_distribution.png
-│       ├── model_comparison_f1.png
-│       └── nodes_per_timestep.png
 ├── project_tree.txt
 ├── README.md
 ├── reports
@@ -32,9 +24,32 @@
 ├── requirements.txt
 ├── results
 │   ├── logs
+│   │   └── experiments.csv
 │   ├── metrics
+│   │   ├── baselines_AF.json
+│   │   ├── baselines_LF.json
+│   │   ├── gnn_AF.json
+│   │   ├── phase01_data_summary.json
+│   │   ├── phase04_tuning_report.json
+│   │   └── phase05_final_evaluation.json
 │   ├── model_artifacts
-│   └── visualization
+│   │   ├── gcn_AF.pt
+│   │   ├── gnn_meta_AF.json
+│   │   ├── lr_AF.joblib
+│   │   ├── lr_LF.joblib
+│   │   ├── rf_AF.joblib
+│   │   ├── rf_LF.joblib
+│   │   ├── scaler_AF.joblib
+│   │   ├── scaler_LF.joblib
+│   │   ├── skip_gcn_AF.pt
+│   │   ├── tabular_meta_AF.json
+│   │   ├── tabular_meta_LF.json
+│   │   ├── tuned_lr_AF.joblib
+│   │   └── tuned_rf_AF.joblib
+│   └── visualizations
+│       ├── class_distribution.png
+│       ├── model_comparison_f1.png
+│       └── nodes_per_timestep.png
 └── src
     ├── baselines.py
     ├── config.py
@@ -53,8 +68,15 @@
     │   ├── config.cpython-313.pyc
     │   ├── data.cpython-313.pyc
     │   ├── eval.cpython-313.pyc
+    │   ├── gnn.cpython-313.pyc
+    │   ├── graph_data.cpython-313.pyc
     │   ├── main.cpython-313.pyc
+    │   ├── phase01_preprocessing.cpython-313.pyc
+    │   ├── phase02_eda.cpython-313.pyc
+    │   ├── phase03_models.cpython-313.pyc
+    │   ├── phase04_tuning.cpython-313.pyc
+    │   ├── phase05_eval_infer.cpython-313.pyc
     │   └── viz.cpython-313.pyc
     └── viz.py
 
-17 directories, 41 files
+13 directories, 67 files
