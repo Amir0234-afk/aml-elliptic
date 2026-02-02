@@ -1,7 +1,8 @@
+# src/baselines.py
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Optional
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -16,7 +17,11 @@ class BaselineModels:
     rf: RandomForestClassifier
 
 
-def train_lr(X: np.ndarray, y: np.ndarray, class_weight: dict[int, float]) -> LogisticRegression:
+def train_lr(
+    X: np.ndarray,
+    y: np.ndarray,
+    class_weight: Optional[dict[int, float]] = None,
+) -> LogisticRegression:
     model = LogisticRegression(
         max_iter=5000,
         class_weight=class_weight,
@@ -31,14 +36,15 @@ def train_rf(
     y: np.ndarray,
     n_estimators: int,
     max_features: RFMaxFeatures,
-    class_weight: dict[int, float],
+    class_weight: Optional[dict[int, float]] = None,
+    random_state: int = 42,
 ) -> RandomForestClassifier:
     model = RandomForestClassifier(
         n_estimators=n_estimators,
         max_features=max_features,
         class_weight=class_weight,
         n_jobs=-1,
-        random_state=42,
+        random_state=random_state,
     )
     model.fit(X, y)
     return model

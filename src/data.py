@@ -1,159 +1,32 @@
+# src/data.py
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Tuple, List
+from typing import Literal, Optional, Sequence, TypeAlias
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-ELLIPTIC_FEATURES_CANDIDATES = [
-    "elliptic_txs_features.csv",
-    "txs_features.csv",
-    "features.csv",
-]
-ELLIPTIC_EDGES_CANDIDATES = [
-    "elliptic_txs_edgelist.csv",
-    "txs_edgelist.csv",
-    "edgelist.csv",
-    "edges.csv",
-]
-ELLIPTIC_CLASSES_CANDIDATES = [
-    "elliptic_txs_classes.csv",
-    "txs_classes.csv",
-    "classes.csv",
-    "labels.csv",
-]
+CSVHeader: TypeAlias = int | Sequence[int] | Literal["infer"] | None
+FeatureMode = Literal["AF", "LF"]
 
 
-@dataclass
-class LoadedElliptic:
-    features: pd.DataFrame  # txId, f0..f165, time_step
-    edges: pd.DataFrame     # src, dst
-    classes: pd.DataFrame   # txId, class
+@dataclass(frozen=True)
+class EllipticLoaded:
+    features: pd.DataFrame  # txId, time_step, feat_*
+    edges: pd.DataFrame     # txId1, txId2
+    classes: pd.DataFrame   # txId, class (1/2/unknown)
 
 
-def _find_file(data_dir: Path, candidates: list[str]) -> Path:
-    for name in candidates:
-        p = data_dir / name
-        if p.exists():
-            return p
-    raise FileNotFoundError(f"Could not find any of: {candidates} in {data_dir.resolve()}")
-
-
-def load_features(data_dir: Path) -> pd.DataFrame:
-    f_path = _find_file(data_dir, ELLIPTIC_FEATURES_CANDIDATES)
-
-    # Elliptic features: 167 columns total = txId + 166 features
-    # Some exports introduce an extra leading column; drop it defensively.
-    features = pd.read_csv(f_path, header=None, index_col=False)
-
-    if features.shape[1] == 168:
-        features = features.iloc[:, 1:]
-
-    n_cols = features.shape[1]
-    if n_cols != 167:
-        raise ValueError(f"Features file has {n_cols} cols; expected exactly 167 (txId + 166 features).")
-
-    col_names = ["txId"] + [f"f{i}" for i in range(n_cols - 1)]
-    features.columns = col_names
-
-    features["txId"] = pd.to_numeric(features["txId"], errors="raise").astype(int)
-    # time step is encoded in f0
-    features["time_step"] = pd.to_numeric(features["f0"], errors="raise").astype(int)
-
-    return features
-
-
-def load_edges(data_dir: Path) -> pd.DataFrame:
-    e_path = _find_file(data_dir, ELLIPTIC_EDGES_CANDIDATES)
-
-    edges = pd.read_csv(e_path)
-    if edges.shape[1] < 2:
-        raise ValueError("Edges file must have at least 2 columns (src, dst).")
-
-    edges = edges.iloc[:, :2].copy()
-    edges.columns = ["src", "dst"]
-
-    edges["src"] = pd.to_numeric(edges["src"], errors="raise").astype(int)
-    edges["dst"] = pd.to_numeric(edges["dst"], errors="raise").astype(int)
-    return edges
-
-
-def load_classes(data_dir: Path) -> pd.DataFrame:
-    c_path = _find_file(data_dir, ELLIPTIC_CLASSES_CANDIDATES)
-
-    classes = pd.read_csv(c_path)
-    if classes.shape[1] < 2:
-        raise ValueError("Classes file must have at least 2 columns (txId, class).")
-
-    classes = classes.iloc[:, :2].copy()
-    classes.columns = ["txId", "class"]
-    classes["txId"] = pd.to_numeric(classes["txId"], errors="raise").astype(int)
-    return classes
-
-
-def load_elliptic(data_dir: Path) -> LoadedElliptic:
-    return LoadedElliptic(
-        features=load_features(data_dir),
-        edges=load_edges(data_dir),
-        classes=load_classes(data_dir),
-    )
-
-
-def labeled_only(df_feat: pd.DataFrame, df_cls: pd.DataFrame) -> pd.DataFrame:
-    merged = df_feat.merge(df_cls, on="txId", how="left")
-
-    # class can be "1","2","unknown" => coerce numeric; unknown -> NaN
-    merged["class"] = pd.to_numeric(merged["class"], errors="coerce")
-    merged = merged.loc[merged["class"].isin([1, 2])].copy()
-    merged["class"] = merged["class"].astype(int)
-
-    return merged
-
-
-def get_feature_cols(df: pd.DataFrame, feature_mode: str) -> List[str]:
-    """
-    feature_mode:
-      LF: f1..f94 (94 cols)
-      AF: f1..f165 (166 cols)
-    Excludes f0 because it encodes time_step.
-    """
-    if feature_mode not in ("LF", "AF"):
-        raise ValueError("feature_mode must be 'LF' or 'AF'")
-
-    f_cols = [c for c in df.columns if c.startswith("f")]
-    f_cols = sorted(f_cols, key=lambda s: int(s[1:]))
-    feat_cols = [c for c in f_cols if c != "f0"]
-
-    if feature_mode == "LF":
-        return feat_cols[:94]
-    return feat_cols[:166]
-
-
-def temporal_split_time_steps(time_steps: npt.ArrayLike, train_ratio: float) -> Tuple[np.ndarray, np.ndarray]:
-    ts = np.asarray(time_steps)
-    unique_steps = np.unique(ts)
-    unique_steps.sort()
-
-    if unique_steps.size < 2:
-        raise ValueError("Need at least 2 unique time steps for a temporal train/test split.")
-
-    cut = int(np.floor(train_ratio * unique_steps.size))
-    cut = max(1, min(cut, unique_steps.size - 1))
-
-    return unique_steps[:cut], unique_steps[cut:]
-
-
-@dataclass
-class SplitData:
+@dataclass(frozen=True)
+class TabularSplit:
     X_train: np.ndarray
     y_train: np.ndarray
+    tx_train: np.ndarray
     X_test: np.ndarray
     y_test: np.ndarray
-    tx_train: np.ndarray
     tx_test: np.ndarray
     train_steps: np.ndarray
     test_steps: np.ndarray
@@ -161,50 +34,226 @@ class SplitData:
     scaler: Optional[StandardScaler]
 
 
+def read_csv_typed(path: Path, *, header: CSVHeader = "infer", **kwargs) -> pd.DataFrame:
+    return pd.read_csv(path, header=header, **kwargs)
+
+
+def _read_csv_flexible(path: Path, header: CSVHeader = "infer") -> pd.DataFrame:
+    return read_csv_typed(path, header=header)
+
+
+def _coerce_int_series(s: pd.Series) -> pd.Series:
+    out = pd.to_numeric(s, errors="coerce")
+    return out
+
+
+def _load_features(raw_dir: Path) -> pd.DataFrame:
+    p = raw_dir / "elliptic_txs_features.csv"
+    # Elliptic features file is typically headerless; read as header=None.
+    df = _read_csv_flexible(p, header=None)
+
+    if df.shape[1] < 3:
+        # Fallback
+        df = _read_csv_flexible(p, header="infer")
+
+    n_feat = df.shape[1] - 2
+    cols = ["txId", "time_step"] + [f"feat_{i}" for i in range(n_feat)]
+    df = df.iloc[:, : (2 + n_feat)].copy()
+    df.columns = cols
+
+    df["txId"] = _coerce_int_series(df["txId"])
+    df["time_step"] = _coerce_int_series(df["time_step"])
+
+    # Drop any accidental header row / corrupt rows
+    df = df.dropna(subset=["txId", "time_step"]).copy()
+    df["txId"] = df["txId"].astype(np.int64)
+    df["time_step"] = df["time_step"].astype(np.int64)
+
+    # Features to float
+    feat_cols = cols[2:]
+    for c in feat_cols:
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    # Defensive NaN handling (should be rare in Elliptic)
+    df[feat_cols] = df[feat_cols].fillna(0.0)
+
+    # Deterministic ordering
+    df = df.sort_values("txId").reset_index(drop=True)
+    return df
+
+
+def _load_edges(raw_dir: Path) -> pd.DataFrame:
+    p = raw_dir / "elliptic_txs_edgelist.csv"
+    # Robust: read as headerless, then coerce numeric and drop NaNs (handles header row if present).
+    df = _read_csv_flexible(p, header=None)
+    if df.shape[1] < 2:
+        df = _read_csv_flexible(p, header="infer")
+
+    df = df.iloc[:, :2].copy()
+    df.columns = ["txId1", "txId2"]
+
+    df["txId1"] = _coerce_int_series(df["txId1"])
+    df["txId2"] = _coerce_int_series(df["txId2"])
+    df = df.dropna(subset=["txId1", "txId2"]).copy()
+
+    df["txId1"] = df["txId1"].astype(np.int64)
+    df["txId2"] = df["txId2"].astype(np.int64)
+
+    return df
+
+
+def _load_classes(raw_dir: Path) -> pd.DataFrame:
+    p = raw_dir / "elliptic_txs_classes.csv"
+
+    # Robust: read headerless then coerce; if header exists, it will be kept as row 0 and dropped by coercion.
+    df = _read_csv_flexible(p, header=None)
+    if df.shape[1] < 2:
+        df = _read_csv_flexible(p, header="infer")
+
+    df = df.iloc[:, :2].copy()
+    df.columns = ["txId", "class"]
+
+    df["txId"] = _coerce_int_series(df["txId"])
+    df = df.dropna(subset=["txId"]).copy()
+    df["txId"] = df["txId"].astype(np.int64)
+    df["class"] = df["class"].astype(str).str.strip()
+
+    return df
+
+
+def load_elliptic(raw_dir: Path) -> EllipticLoaded:
+    feats = _load_features(raw_dir)
+    edges = _load_edges(raw_dir)
+    classes = _load_classes(raw_dir)
+    return EllipticLoaded(features=feats, edges=edges, classes=classes)
+
+
+def map_class_to_int(series: pd.Series) -> pd.Series:
+    """
+    Elliptic: '1' = illicit, '2' = licit, 'unknown' = unlabeled.
+    Return: 1=illicit, 0=licit, -1=unknown.
+    """
+    s = series.astype(str).str.strip().str.lower()
+    out = pd.Series(-1, index=s.index, dtype="int64")
+    out.loc[s == "1"] = 1
+    out.loc[s == "2"] = 0
+    out.loc[s == "unknown"] = -1
+    return out
+
+
+def build_full_dataset(features: pd.DataFrame, classes: pd.DataFrame) -> pd.DataFrame:
+    df = features.merge(classes[["txId", "class"]], on="txId", how="left")
+    df["class_raw"] = df["class"].astype(str)
+    df["class"] = map_class_to_int(df["class_raw"])
+    df["class"] = df["class"].fillna(-1).astype(int)
+
+    # Deterministic ordering
+    df = df.sort_values("txId").reset_index(drop=True)
+    return df
+
+
+def labeled_only(features: pd.DataFrame, classes: pd.DataFrame) -> pd.DataFrame:
+    df_full = build_full_dataset(features, classes)
+    df_lab = df_full[df_full["class"] != -1].copy()
+    df_lab["class"] = df_lab["class"].astype(int)
+    return df_lab
+
+
+def _sorted_feat_cols(df: pd.DataFrame) -> list[str]:
+    cols = [c for c in df.columns if c.startswith("feat_")]
+    if not cols:
+        return []
+    def key(c: str) -> int:
+        try:
+            return int(c.split("_", 1)[1])
+        except Exception:
+            return 10**12
+    return sorted(cols, key=key)
+
+
+def get_feature_cols(df: pd.DataFrame, feature_mode: FeatureMode) -> list[str]:
+    feat_cols = _sorted_feat_cols(df)
+    if not feat_cols:
+        raise ValueError("No feature columns found (expected columns starting with 'feat_').")
+
+    if feature_mode == "AF":
+        return feat_cols
+
+    # LF: first 94 local features (Elliptic convention).
+    k = min(94, len(feat_cols))
+    return feat_cols[:k]
+
+
+def load_edges(raw_dir: Path) -> pd.DataFrame:
+    return _load_edges(raw_dir)
+
+
+def class_weights_binary(y: np.ndarray) -> dict[int, float]:
+    y = np.asarray(y).astype(int)
+    classes = set(np.unique(y).tolist())
+    if classes != {0, 1}:
+        raise ValueError(f"class_weights_binary expects y in {{0,1}} only. Got classes={classes}.")
+    n0 = int((y == 0).sum())
+    n1 = int((y == 1).sum())
+    n = n0 + n1
+    w0 = n / (2 * n0) if n0 > 0 else 1.0
+    w1 = n / (2 * n1) if n1 > 0 else 1.0
+    return {0: float(w0), 1: float(w1)}
+
+
 def make_tabular_split(
-    labeled_df: pd.DataFrame,
-    feature_mode: str,
-    train_ratio: float,
-    normalize: bool,
-) -> SplitData:
-    train_steps, test_steps = temporal_split_time_steps(labeled_df["time_step"].to_numpy(), train_ratio)
+    df_labeled: pd.DataFrame,
+    feature_mode: FeatureMode,
+    train_ratio: float = 0.7,
+    normalize: bool = True,
+) -> TabularSplit:
+    df = df_labeled.copy()
 
-    df_train = labeled_df[labeled_df["time_step"].isin(train_steps)].copy()
-    df_test = labeled_df[labeled_df["time_step"].isin(test_steps)].copy()
+    # Require labeled-only for tabular
+    if (df["class"] == -1).any():
+        df = df[df["class"] != -1].copy()
 
-    feature_cols = get_feature_cols(labeled_df, feature_mode)
+    df["class"] = df["class"].astype(int)
+    if not set(df["class"].unique().tolist()).issubset({0, 1}):
+        raise ValueError("Tabular split requires class in {0,1}. Re-run preprocessing.")
+
+    steps = np.sort(df["time_step"].unique())
+    if len(steps) < 2:
+        raise ValueError("Not enough unique timesteps for temporal split.")
+
+    n_train_steps = int(np.floor(len(steps) * train_ratio))
+    n_train_steps = max(1, min(n_train_steps, len(steps) - 1))
+    train_steps = steps[:n_train_steps]
+    test_steps = steps[n_train_steps:]
+
+    df_train = df[df["time_step"].isin(train_steps)].copy()
+    df_test = df[df["time_step"].isin(test_steps)].copy()
+
+    feature_cols = get_feature_cols(df, feature_mode)
 
     X_train = df_train[feature_cols].to_numpy(dtype=np.float32)
-    X_test = df_test[feature_cols].to_numpy(dtype=np.float32)
+    y_train = df_train["class"].to_numpy(dtype=np.int64)
+    tx_train = df_train["txId"].to_numpy(dtype=np.int64)
 
-    # illicit=1 -> 1, licit=2 -> 0
-    y_train = (df_train["class"].to_numpy() == 1).astype(np.int64)
-    y_test = (df_test["class"].to_numpy() == 1).astype(np.int64)
+    X_test = df_test[feature_cols].to_numpy(dtype=np.float32)
+    y_test = df_test["class"].to_numpy(dtype=np.int64)
+    tx_test = df_test["txId"].to_numpy(dtype=np.int64)
 
     scaler: Optional[StandardScaler] = None
     if normalize:
         scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train).astype(np.float32)
-        X_test = scaler.transform(X_test).astype(np.float32)
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
 
-    return SplitData(
+    return TabularSplit(
         X_train=X_train,
         y_train=y_train,
+        tx_train=tx_train,
         X_test=X_test,
         y_test=y_test,
-        tx_train=df_train["txId"].to_numpy(),
-        tx_test=df_test["txId"].to_numpy(),
+        tx_test=tx_test,
         train_steps=train_steps,
         test_steps=test_steps,
         feature_cols=feature_cols,
         scaler=scaler,
     )
-
-
-def class_weights_binary(y: np.ndarray) -> Dict[int, float]:
-    n = int(y.shape[0])
-    n_pos = int(y.sum())
-    n_neg = n - n_pos
-    w0 = n / max(1, 2 * n_neg)
-    w1 = n / max(1, 2 * n_pos)
-    return {0: float(w0), 1: float(w1)}

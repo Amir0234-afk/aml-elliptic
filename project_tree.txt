@@ -1,6 +1,8 @@
 .
 ├── data
 │   ├── processed
+│   │   ├── elliptic_edges.csv
+│   │   ├── elliptic_full.csv
 │   │   └── elliptic_labeled.csv
 │   └── raw
 │       ├── elliptic_txs_classes.csv
@@ -24,32 +26,65 @@
 ├── requirements.txt
 ├── results
 │   ├── logs
-│   │   └── experiments.csv
+│   │   ├── experiments.csv
+│   │   ├── phase01_20260201T124132Z.json
+│   │   ├── phase01_20260201T124250Z.json
+│   │   ├── phase02_20260201T124357Z.json
+│   │   ├── phase03_20260201T124440Z.json
+│   │   ├── phase04_20260201T145126Z.json
+│   │   ├── phase04_20260202T091250Z.json
+│   │   ├── phase05_20260202T103259Z.json
+│   │   ├── phase05_20260202T135142Z.json
+│   │   └── phase05_20260202T135345Z.json
 │   ├── metrics
 │   │   ├── baselines_AF.json
 │   │   ├── baselines_LF.json
 │   │   ├── gnn_AF.json
 │   │   ├── phase01_data_summary.json
+│   │   ├── phase02_eda_summary.json
 │   │   ├── phase04_tuning_report.json
-│   │   └── phase05_final_evaluation.json
+│   │   └── phase05_eval_report.json
 │   ├── model_artifacts
 │   │   ├── gcn_AF.pt
-│   │   ├── gnn_meta_AF.json
 │   │   ├── lr_AF.joblib
 │   │   ├── lr_LF.joblib
 │   │   ├── rf_AF.joblib
+│   │   ├── rf_aug_AF_gcn.joblib
 │   │   ├── rf_LF.joblib
 │   │   ├── scaler_AF.joblib
 │   │   ├── scaler_LF.joblib
 │   │   ├── skip_gcn_AF.pt
-│   │   ├── tabular_meta_AF.json
-│   │   ├── tabular_meta_LF.json
 │   │   ├── tuned_lr_AF.joblib
+│   │   ├── tuned_lr_AF_scaler.joblib
+│   │   ├── tuned_lr_AF_threshold.joblib
 │   │   └── tuned_rf_AF.joblib
+│   ├── predictions
+│   │   ├── lr_AF_test_predictions.csv
+│   │   └── rf_AF_test_predictions.csv
 │   └── visualizations
 │       ├── class_distribution.png
+│       ├── degree_distribution_log.png
+│       ├── degree_distribution.png
+│       ├── illicit_ratio_over_time.png
+│       ├── label_counts_over_time.png
+│       ├── lr_AF_calibration.png
+│       ├── lr_AF_cm_norm.png
+│       ├── lr_AF_cm.png
+│       ├── lr_AF_pr_curve.png
 │       ├── model_comparison_f1.png
-│       └── nodes_per_timestep.png
+│       ├── nodes_per_timestep_full.png
+│       ├── nodes_per_timestep_labeled.png
+│       ├── rf_AF_calibration.png
+│       ├── rf_AF_cm_norm.png
+│       ├── rf_AF_cm.png
+│       ├── rf_AF_pr_curve.png
+│       ├── rf_AF_threshold_sweep_test.png
+│       ├── RF_f1_over_time_AF.png
+│       ├── RF_precision_over_time_AF.png
+│       ├── RF_recall_over_time_AF.png
+│       └── top_feature_mean_diff.png
+├── scripts
+│   └── run_all.ps1
 └── src
     ├── baselines.py
     ├── config.py
@@ -57,6 +92,7 @@
     ├── eval.py
     ├── gnn.py
     ├── graph_data.py
+    ├── __init__.py
     ├── main.py
     ├── phase01_preprocessing.py
     ├── phase02_eda.py
@@ -70,13 +106,18 @@
     │   ├── eval.cpython-313.pyc
     │   ├── gnn.cpython-313.pyc
     │   ├── graph_data.cpython-313.pyc
+    │   ├── __init__.cpython-313.pyc
     │   ├── main.cpython-313.pyc
     │   ├── phase01_preprocessing.cpython-313.pyc
     │   ├── phase02_eda.cpython-313.pyc
     │   ├── phase03_models.cpython-313.pyc
     │   ├── phase04_tuning.cpython-313.pyc
     │   ├── phase05_eval_infer.cpython-313.pyc
+    │   ├── repro.cpython-313.pyc
+    │   ├── runlog.cpython-313.pyc
     │   └── viz.cpython-313.pyc
+    ├── repro.py
+    ├── runlog.py
     └── viz.py
 
-13 directories, 67 files
+15 directories, 106 files

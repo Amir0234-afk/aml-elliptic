@@ -10,11 +10,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
+
 def _git_commit() -> str | None:
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     except Exception:
         return None
+
 
 def _file_facts(path: Path) -> dict[str, Any]:
     if not path.exists():
@@ -27,17 +29,30 @@ def _file_facts(path: Path) -> dict[str, Any]:
         "mtime_utc": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc).isoformat(),
     }
 
-def _serialize_cfg(cfg: Any) -> Any:
-    # Only call asdict on dataclass *instances*, not dataclass classes
+
+def _cfg_to_jsonable(cfg: Any) -> Any:
+    # is_dataclass(...) is True for BOTH dataclass instances and dataclass classes.
+    # asdict(...) only accepts instances.
     if is_dataclass(cfg) and not isinstance(cfg, type):
-        try:
-            return asdict(cfg)
-        except Exception:
-            pass
-    # Fallbacks
-    if hasattr(cfg, "__dict__"):
-        return dict(cfg.__dict__)
+        return asdict(cfg)
+
+    # Optional support for pydantic models, guarded so type checkers don't complain.
+    if not isinstance(cfg, type):
+        md = getattr(cfg, "model_dump", None)
+        if callable(md):
+            return md()
+
     return str(cfg)
+
+
+def _json_default(o: Any) -> Any:
+    if isinstance(o, Path):
+        return str(o)
+    tolist = getattr(o, "tolist", None)
+    if callable(tolist):
+        return tolist()
+    return str(o)
+
 
 def write_run_manifest(
     out_dir: Path,
@@ -56,10 +71,10 @@ def write_run_manifest(
         "command": " ".join(sys.argv),
         "python": sys.version,
         "platform": platform.platform(),
-        "config": _serialize_cfg(cfg),
+        "config": _cfg_to_jsonable(cfg),
         "data_files": [_file_facts(p) for p in (data_files or [])],
         "extra": dict(extra or {}),
     }
     p = out_dir / f"{run_id}.json"
-    p.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    p.write_text(json.dumps(manifest, indent=2, default=_json_default), encoding="utf-8")
     return p
