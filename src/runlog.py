@@ -63,16 +63,25 @@ def write_run_manifest(
 ) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     run_id = f"phase{phase}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+
+    env_subset = {
+        "AML_DEVICE": str(__import__("os").getenv("AML_DEVICE", "")),
+        "AML_FAST": str(__import__("os").getenv("AML_FAST", "")),
+        "AML_STRICT_ELLIPTIC": str(__import__("os").getenv("AML_STRICT_ELLIPTIC", "")),
+    }
+
     manifest = {
         "run_id": run_id,
         "phase": phase,
         "datetime_utc": datetime.now(timezone.utc).isoformat(),
         "git_commit": _git_commit(),
         "command": " ".join(sys.argv),
+        "cwd": str(Path.cwd()),
         "python": sys.version,
         "platform": platform.platform(),
         "config": _cfg_to_jsonable(cfg),
         "data_files": [_file_facts(p) for p in (data_files or [])],
+        "env": env_subset,
         "extra": dict(extra or {}),
     }
     p = out_dir / f"{run_id}.json"

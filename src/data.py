@@ -56,6 +56,15 @@ def _load_features(raw_dir: Path) -> pd.DataFrame:
         # Fallback
         df = _read_csv_flexible(p, header="infer")
 
+    # Optional strict validation: canonical Elliptic is 167 columns total
+    import os
+    strict = os.getenv("AML_STRICT_ELLIPTIC", "1").strip().lower() in {"1", "true", "yes", "y", "on"}
+    if strict and df.shape[1] != 167:
+        raise RuntimeError(
+            f"Unexpected elliptic_txs_features.csv column count: {df.shape[1]} (expected 167). "
+            "Set AML_STRICT_ELLIPTIC=0 to bypass."
+        )
+
     n_feat = df.shape[1] - 2
     cols = ["txId", "time_step"] + [f"feat_{i}" for i in range(n_feat)]
     df = df.iloc[:, : (2 + n_feat)].copy()
@@ -74,12 +83,13 @@ def _load_features(raw_dir: Path) -> pd.DataFrame:
     for c in feat_cols:
         df[c] = pd.to_numeric(df[c], errors="coerce")
 
-    # Defensive NaN handling (should be rare in Elliptic)
+    # Defensive NaN handling
     df[feat_cols] = df[feat_cols].fillna(0.0)
 
     # Deterministic ordering
     df = df.sort_values("txId").reset_index(drop=True)
     return df
+
 
 
 def _load_edges(raw_dir: Path) -> pd.DataFrame:
@@ -105,7 +115,7 @@ def _load_edges(raw_dir: Path) -> pd.DataFrame:
 def _load_classes(raw_dir: Path) -> pd.DataFrame:
     p = raw_dir / "elliptic_txs_classes.csv"
 
-    # Robust: read headerless then coerce; if header exists, it will be kept as row 0 and dropped by coercion.
+    # Robust: read headerless then coerce; header row drops by coercion.
     df = _read_csv_flexible(p, header=None)
     if df.shape[1] < 2:
         df = _read_csv_flexible(p, header="infer")
@@ -118,7 +128,21 @@ def _load_classes(raw_dir: Path) -> pd.DataFrame:
     df["txId"] = df["txId"].astype(np.int64)
     df["class"] = df["class"].astype(str).str.strip()
 
+    # Validate class strings (non-fatal by default; strict if env set)
+    import os
+    strict = os.getenv("AML_STRICT_ELLIPTIC", "1").strip().lower() in {"1", "true", "yes", "y", "on"}
+    vals = df["class"].astype(str).str.strip().str.lower()
+    bad = ~vals.isin({"1", "2", "unknown"})
+    n_bad = int(bad.sum())
+    if strict and n_bad > 0:
+        examples = vals[bad].value_counts().head(5).to_dict()
+        raise RuntimeError(
+            f"Unexpected class strings in elliptic_txs_classes.csv (count={n_bad}). "
+            f"Examples={examples}. Set AML_STRICT_ELLIPTIC=0 to bypass."
+        )
+
     return df
+
 
 
 def load_elliptic(raw_dir: Path) -> EllipticLoaded:

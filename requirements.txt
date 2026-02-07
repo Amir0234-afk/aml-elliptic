@@ -5,3 +5,5 @@ matplotlib
 torch
 torch-geometric
 tqdm
+joblib
+pyarrow
