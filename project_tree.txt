@@ -33,12 +33,34 @@
 ├── results
 │   ├── logs
 │   │   ├── experiments.csv
-│   │   └── phase01_20260207T113954Z.json
+│   │   ├── phase01_20260207T113954Z.json
+│   │   └── phase02_20260207T122203Z.json
 │   ├── metrics
-│   │   └── phase01_data_summary.json
+│   │   ├── phase01_data_summary.json
+│   │   └── phase02_eda_summary.json
 │   ├── model_artifacts
 │   ├── predictions
 │   └── visualizations
+│       └── phase02_eda
+│           ├── class_distribution.png
+│           ├── degree_distribution_log.png
+│           ├── degree_distribution.png
+│           ├── degree_illicit_log.png
+│           ├── degree_illicit.png
+│           ├── degree_labeled_log.png
+│           ├── degree_labeled.png
+│           ├── degree_licit_log.png
+│           ├── degree_licit.png
+│           ├── degree_unlabeled_log.png
+│           ├── degree_unlabeled.png
+│           ├── illicit_count_over_time.png
+│           ├── illicit_ratio_over_time.png
+│           ├── label_counts_over_time.png
+│           ├── labeled_fraction_over_time.png
+│           ├── licit_count_over_time.png
+│           ├── nodes_per_timestep_full.png
+│           ├── nodes_per_timestep_labeled.png
+│           └── top_feature_mean_diff.png
 ├── scripts
 │   ├── check_shape.py
 │   └── run_all.ps1
@@ -77,4 +99,4 @@
     ├── runlog.py
     └── viz.py
 
-15 directories, 63 files
+16 directories, 84 files

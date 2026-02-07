@@ -37,7 +37,7 @@ def train_rf(
     n_estimators: int,
     max_features: RFMaxFeatures,
     class_weight: Optional[dict[int, float]] = None,
-    random_state: int = 42,
+    random_state: int = 23,
 ) -> RandomForestClassifier:
     model = RandomForestClassifier(
         n_estimators=n_estimators,
