@@ -163,6 +163,73 @@ def save_degree_distribution(edges_df: pd.DataFrame, out_dir: Path) -> None:
     plt.close()
 
 
+def save_degree_distribution_from_degrees(
+    degrees: np.ndarray,
+    out_dir: Path,
+    *,
+    fname_base: str,
+    title: str,
+    bins: int = 100,
+) -> None:
+    """
+    Histogram of node degrees given an explicit degree array.
+    Saves both linear and log-count variants.
+    """
+    _ensure_out(out_dir)
+    d = _to_np_1d(degrees, dtype=int)
+    if d.size == 0:
+        return
+
+    plt.figure()
+    plt.hist(d, bins=bins)
+    plt.title(title)
+    plt.xlabel("degree")
+    plt.ylabel("count")
+    plt.tight_layout()
+    plt.savefig(out_dir / f"{fname_base}.png", dpi=200)
+    plt.close()
+
+    plt.figure()
+    plt.hist(d, bins=bins, log=True)
+    plt.title(title + " (log-count)")
+    plt.xlabel("degree")
+    plt.ylabel("count (log)")
+    plt.tight_layout()
+    plt.savefig(out_dir / f"{fname_base}_log.png", dpi=200)
+    plt.close()
+
+
+def save_count_over_time(
+    time_steps: np.ndarray,
+    counts: np.ndarray,
+    out_dir: Path,
+    *,
+    fname: str = "count_over_time.png",
+    title: str = "Count over time",
+    ylabel: str = "count",
+) -> None:
+    """
+    Plot a non-normalized count series over time_step (no [0,1] ylim clamp).
+    """
+    _ensure_out(out_dir)
+    x = _to_np_1d(time_steps, dtype=int)
+    y = _to_np_1d(counts, dtype=float)
+    if x.size == 0 or y.size == 0:
+        return
+    n = min(x.size, y.size)
+    x, y = x[:n], y[:n]
+
+    plt.figure()
+    plt.plot(x, y)
+    plt.title(title)
+    plt.xlabel("time_step")
+    plt.ylabel(ylabel)
+    plt.tight_layout()
+    plt.savefig(out_dir / fname, dpi=200)
+    plt.close()
+
+ 
+
 def save_top_feature_mean_diff(df_labeled: pd.DataFrame, out_dir: Path, *, top_k: int = 20) -> None:
     """
     Bar plot: top-K features by absolute difference in mean between illicit (1) and licit (0).

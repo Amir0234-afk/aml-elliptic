@@ -2,8 +2,14 @@
 ├── data
 │   ├── processed
 │   │   ├── elliptic_edges.csv
+│   │   ├── elliptic_edges_kept.csv
+│   │   ├── elliptic_edges_kept.parquet
+│   │   ├── elliptic_edges.parquet
 │   │   ├── elliptic_full.csv
-│   │   └── elliptic_labeled.csv
+│   │   ├── elliptic_full.parquet
+│   │   ├── elliptic_labeled.csv
+│   │   ├── elliptic_labeled.parquet
+│   │   └── node_index.parquet
 │   └── raw
 │       ├── elliptic_txs_classes.csv
 │       ├── elliptic_txs_edgelist.csv
@@ -27,63 +33,14 @@
 ├── results
 │   ├── logs
 │   │   ├── experiments.csv
-│   │   ├── phase01_20260201T124132Z.json
-│   │   ├── phase01_20260201T124250Z.json
-│   │   ├── phase02_20260201T124357Z.json
-│   │   ├── phase03_20260201T124440Z.json
-│   │   ├── phase04_20260201T145126Z.json
-│   │   ├── phase04_20260202T091250Z.json
-│   │   ├── phase05_20260202T103259Z.json
-│   │   ├── phase05_20260202T135142Z.json
-│   │   └── phase05_20260202T135345Z.json
+│   │   └── phase01_20260207T113954Z.json
 │   ├── metrics
-│   │   ├── baselines_AF.json
-│   │   ├── baselines_LF.json
-│   │   ├── gnn_AF.json
-│   │   ├── phase01_data_summary.json
-│   │   ├── phase02_eda_summary.json
-│   │   ├── phase04_tuning_report.json
-│   │   └── phase05_eval_report.json
+│   │   └── phase01_data_summary.json
 │   ├── model_artifacts
-│   │   ├── gcn_AF.pt
-│   │   ├── lr_AF.joblib
-│   │   ├── lr_LF.joblib
-│   │   ├── rf_AF.joblib
-│   │   ├── rf_aug_AF_gcn.joblib
-│   │   ├── rf_LF.joblib
-│   │   ├── scaler_AF.joblib
-│   │   ├── scaler_LF.joblib
-│   │   ├── skip_gcn_AF.pt
-│   │   ├── tuned_lr_AF.joblib
-│   │   ├── tuned_lr_AF_scaler.joblib
-│   │   ├── tuned_lr_AF_threshold.joblib
-│   │   └── tuned_rf_AF.joblib
 │   ├── predictions
-│   │   ├── lr_AF_test_predictions.csv
-│   │   └── rf_AF_test_predictions.csv
 │   └── visualizations
-│       ├── class_distribution.png
-│       ├── degree_distribution_log.png
-│       ├── degree_distribution.png
-│       ├── illicit_ratio_over_time.png
-│       ├── label_counts_over_time.png
-│       ├── lr_AF_calibration.png
-│       ├── lr_AF_cm_norm.png
-│       ├── lr_AF_cm.png
-│       ├── lr_AF_pr_curve.png
-│       ├── model_comparison_f1.png
-│       ├── nodes_per_timestep_full.png
-│       ├── nodes_per_timestep_labeled.png
-│       ├── rf_AF_calibration.png
-│       ├── rf_AF_cm_norm.png
-│       ├── rf_AF_cm.png
-│       ├── rf_AF_pr_curve.png
-│       ├── rf_AF_threshold_sweep_test.png
-│       ├── RF_f1_over_time_AF.png
-│       ├── RF_precision_over_time_AF.png
-│       ├── RF_recall_over_time_AF.png
-│       └── top_feature_mean_diff.png
 ├── scripts
+│   ├── check_shape.py
 │   └── run_all.ps1
 └── src
     ├── baselines.py
@@ -120,4 +77,4 @@
     ├── runlog.py
     └── viz.py
 
-15 directories, 106 files
+15 directories, 63 files
