@@ -39,46 +39,56 @@
 ├── results
 │   ├── logs
 │   │   ├── experiments.csv
-│   │   ├── phase01_20260207T113954Z.json
 │   │   ├── phase01_20260207T131049Z.json
-│   │   ├── phase02_20260207T122203Z.json
 │   │   ├── phase02_20260207T131119Z.json
-│   │   ├── phase02b_20260207T131711Z.json
-│   │   ├── phase02b_20260207T132416Z.json
-│   │   ├── phase02b_20260207T133056Z.json
 │   │   ├── phase02b_20260207T133151Z.json
-│   │   ├── phase03_20260208T121230Z.json
-│   │   ├── phase03_20260208T121747Z.json
-│   │   ├── phase03_20260208T122020Z.json
-│   │   ├── phase03_20260208T122046Z.json
-│   │   ├── phase03_20260208T123226Z.json
-│   │   ├── phase03_20260208T123248Z.json
-│   │   ├── phase03_20260208T123501Z.json
-│   │   ├── phase03_20260208T123516Z.json
-│   │   ├── phase03_20260208T124137Z.json
-│   │   ├── phase03_20260208T134643Z.json
-│   │   ├── phase03_20260208T140657Z.json
-│   │   ├── phase03_20260208T173212Z.json
 │   │   ├── phase03_20260208T230132Z.json
-│   │   ├── phase03_artifacts_20260208T130521Z.json
-│   │   └── phase03_artifacts_20260209T172041Z.json
+│   │   ├── phase03_artifacts_20260209T172041Z.json
+│   │   ├── phase04_20260209T195917Z.json
+│   │   ├── phase04_artifacts_cuml_20260209T202404Z.json
+│   │   └── phase05_20260209T215119Z.json
 │   ├── metrics
 │   │   ├── baselines_AF.json
 │   │   ├── baselines_LF.json
 │   │   ├── gnn_AF.json
 │   │   ├── phase01_data_summary.json
-│   │   └── phase02_eda_summary.json
+│   │   ├── phase02_eda_summary.json
+│   │   ├── phase04_tuning_AF_cuml.json
+│   │   ├── phase04_tuning_index_cuml.json
+│   │   ├── phase04_tuning_LF_cuml.json
+│   │   └── phase05_eval_report.json
 │   ├── model_artifacts
 │   │   ├── gcn_AF.pt
 │   │   ├── lr_AF_cuml.joblib
 │   │   ├── lr_LF_cuml.joblib
+│   │   ├── phase04
+│   │   │   ├── lr_AF_cuml.joblib
+│   │   │   ├── lr_LF_cuml.joblib
+│   │   │   ├── lr_scaler_AF.joblib
+│   │   │   ├── lr_scaler_LF.joblib
+│   │   │   ├── lr_threshold_AF_cuml.json
+│   │   │   ├── lr_threshold_LF_cuml.json
+│   │   │   ├── rf_AF_cuml.joblib
+│   │   │   ├── rf_LF_cuml.joblib
+│   │   │   ├── rf_threshold_AF_cuml.json
+│   │   │   └── rf_threshold_LF_cuml.json
 │   │   ├── rf_AF_cuml.joblib
 │   │   ├── rf_aug_AF_gcn.joblib
 │   │   ├── rf_LF_cuml.joblib
 │   │   ├── scaler_AF.joblib
 │   │   ├── scaler_LF.joblib
-│   │   └── skip_gcn_AF.pt
+│   │   ├── skip_gcn_AF.pt
+│   │   ├── tuned_lr_AF.joblib
+│   │   ├── tuned_lr_AF_scaler.joblib
+│   │   ├── tuned_lr_AF_threshold.joblib
+│   │   └── tuned_rf_AF.joblib
 │   ├── predictions
+│   │   ├── phase05_gnn_gcn_AF.parquet
+│   │   ├── phase05_gnn_skip_gcn_AF.parquet
+│   │   ├── phase05_tabular_lr_AF_cuml.parquet
+│   │   ├── phase05_tabular_lr_LF_cuml.parquet
+│   │   ├── phase05_tabular_rf_AF_cuml.parquet
+│   │   └── phase05_tabular_rf_LF_cuml.parquet
 │   └── visualizations
 │       ├── model_comparison_f1.png
 │       ├── normalizedData
@@ -89,26 +99,49 @@
 │       │   ├── AF_train_pca_post_norm.png
 │       │   ├── AF_train_pca_pre_norm.png
 │       │   └── normalized_stats_AF.json
-│       └── phase02_eda
-│           ├── class_distribution.png
-│           ├── degree_distribution_log.png
-│           ├── degree_distribution.png
-│           ├── degree_illicit_log.png
-│           ├── degree_illicit.png
-│           ├── degree_labeled_log.png
-│           ├── degree_labeled.png
-│           ├── degree_licit_log.png
-│           ├── degree_licit.png
-│           ├── degree_unlabeled_log.png
-│           ├── degree_unlabeled.png
-│           ├── illicit_count_over_time.png
-│           ├── illicit_ratio_over_time.png
-│           ├── label_counts_over_time.png
-│           ├── labeled_fraction_over_time.png
-│           ├── licit_count_over_time.png
-│           ├── nodes_per_timestep_full.png
-│           ├── nodes_per_timestep_labeled.png
-│           └── top_feature_mean_diff.png
+│       ├── phase02_eda
+│       │   ├── class_distribution.png
+│       │   ├── degree_distribution_log.png
+│       │   ├── degree_distribution.png
+│       │   ├── degree_illicit_log.png
+│       │   ├── degree_illicit.png
+│       │   ├── degree_labeled_log.png
+│       │   ├── degree_labeled.png
+│       │   ├── degree_licit_log.png
+│       │   ├── degree_licit.png
+│       │   ├── degree_unlabeled_log.png
+│       │   ├── degree_unlabeled.png
+│       │   ├── illicit_count_over_time.png
+│       │   ├── illicit_ratio_over_time.png
+│       │   ├── label_counts_over_time.png
+│       │   ├── labeled_fraction_over_time.png
+│       │   ├── licit_count_over_time.png
+│       │   ├── nodes_per_timestep_full.png
+│       │   ├── nodes_per_timestep_labeled.png
+│       │   └── top_feature_mean_diff.png
+│       ├── phase04
+│       │   ├── calib_lr_AF_cuml.png
+│       │   ├── calib_lr_LF_cuml.png
+│       │   ├── calib_rf_AF_cuml.png
+│       │   ├── calib_rf_LF_cuml.png
+│       │   ├── cm_lr_AF_cuml_norm.png
+│       │   ├── cm_lr_AF_cuml.png
+│       │   ├── cm_lr_LF_cuml_norm.png
+│       │   ├── cm_lr_LF_cuml.png
+│       │   ├── cm_rf_AF_cuml_norm.png
+│       │   ├── cm_rf_AF_cuml.png
+│       │   ├── cm_rf_LF_cuml_norm.png
+│       │   ├── cm_rf_LF_cuml.png
+│       │   ├── pr_lr_AF_cuml.png
+│       │   ├── pr_lr_LF_cuml.png
+│       │   ├── pr_rf_AF_cuml.png
+│       │   ├── pr_rf_LF_cuml.png
+│       │   ├── thr_sweep_lr_AF_cuml.png
+│       │   ├── thr_sweep_lr_LF_cuml.png
+│       │   ├── thr_sweep_rf_AF_cuml.png
+│       │   └── thr_sweep_rf_LF_cuml.png
+│       └── phase05
+│           └── phase05_final_f1_summary.png
 ├── scripts
 │   ├── check_shape.py
 │   └── run_all.ps1
@@ -166,4 +199,4 @@
     ├── tabular_backend.py
     └── viz.py
 
-17 directories, 150 files
+20 directories, 180 files

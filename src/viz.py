@@ -456,3 +456,28 @@ def save_confusion_matrix_heatmap(
     plt.tight_layout()
     plt.savefig(out_dir / fname, dpi=200)
     plt.close()
+
+def save_final_f1_summary_bar(
+    f1_by_model: dict[str, float],
+    out_dir: Path,
+    *,
+    fname: str = "phase05_final_f1_summary.png",
+    title: str = "Final Test Illicit F1 (Phase 05)",
+) -> Path:
+    _ensure_out(out_dir)
+    items = sorted(f1_by_model.items(), key=lambda kv: (-float(kv[1]), kv[0]))
+    labels = [k for k, _ in items]
+    values = [float(v) for _, v in items]
+
+    plt.figure(figsize=(12, 5))
+    plt.bar(labels, values)
+    plt.ylim(0.0, 1.0)
+    plt.ylabel("F1 (illicit class)")
+    plt.title(title)
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+
+    p = out_dir / fname
+    plt.savefig(p, dpi=200)
+    plt.close()
+    return p
