@@ -12,6 +12,14 @@ if __name__ == "__main__" and __package__ is None:
 
 import argparse
 import os
+
+# ---- determinism (must be set BEFORE importing torch) ----
+# Enables deterministic cuBLAS on CUDA >= 10.2 when torch deterministic algorithms are enabled.
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+# Optional: reduces some nondeterminism sources; harmless if not used.
+os.environ.setdefault("PYTHONHASHSEED", "0")
+
+
 import torch
 
 from src.config import ExperimentConfig
@@ -40,12 +48,15 @@ def main() -> None:
     p.add_argument("--phase", default="all", choices=["1", "2", "3", "4", "5", "all"])
     p.add_argument("--print-env", action="store_true", help="Print torch/cuda + resolved cfg.device and exit.")
     p.add_argument("--device", default=None, help="Override device: auto|cpu|cuda|cuda:0 (sets AML_DEVICE)")
+    p.add_argument("--tabular-backend", default=None, choices=["sklearn","cuml", "xgboost","auto"], help="Sets AML_TABULAR_BACKEND")
     p.add_argument("--fast", action="store_true", help="Enable fast mode (sets AML_FAST=1)")
 
     args = p.parse_args()
 
     if args.device:
         os.environ["AML_DEVICE"] = str(args.device).strip()
+    if args.tabular_backend:
+        os.environ["AML_TABULAR_BACKEND"] = str(args.tabular_backend).strip()
     if args.fast:
         os.environ["AML_FAST"] = "1"
 

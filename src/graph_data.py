@@ -30,6 +30,12 @@ def build_graph(
     make_undirected: bool = True,
 ) -> GraphBundle:
     df = df_labeled.copy()
+    
+    # Deterministic node ordering
+    df = df.sort_values("txId").reset_index(drop=True)
+    if not df["txId"].is_unique:
+        raise ValueError("build_graph: txId is not unique (node mapping would be ambiguous).")
+
 
     # Ensure required columns exist
     req = {"txId", "time_step", "class", *feature_cols}

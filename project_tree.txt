@@ -14,33 +14,81 @@
 │       ├── elliptic_txs_classes.csv
 │       ├── elliptic_txs_edgelist.csv
 │       └── elliptic_txs_features.csv
+├── environment_gpu.yml
 ├── notebooks
 │   ├── 01_data_cleaning.ipynb
 │   ├── 02_eda_visualization.ipynb
 │   ├── 03_model_selection.ipynb
 │   ├── 04_model_optimization.ipynb
 │   └── 05_evaluation_inference.ipynb
+├── pip-check.txt
 ├── project_tree.txt
 ├── README.md
 ├── reports
+│   ├── env.txt
 │   ├── final_report.md
 │   ├── phase01_preprocessing.md
 │   ├── phase02_eda.md
 │   ├── phase03_model_selection.md
 │   ├── phase04_optimization.md
 │   └── phase05_evaluation.md
+├── requirements_core.txt
+├── requirements-lock.txt
+├── requirements.lock.txt
 ├── requirements.txt
 ├── results
 │   ├── logs
 │   │   ├── experiments.csv
 │   │   ├── phase01_20260207T113954Z.json
-│   │   └── phase02_20260207T122203Z.json
+│   │   ├── phase01_20260207T131049Z.json
+│   │   ├── phase02_20260207T122203Z.json
+│   │   ├── phase02_20260207T131119Z.json
+│   │   ├── phase02b_20260207T131711Z.json
+│   │   ├── phase02b_20260207T132416Z.json
+│   │   ├── phase02b_20260207T133056Z.json
+│   │   ├── phase02b_20260207T133151Z.json
+│   │   ├── phase03_20260208T121230Z.json
+│   │   ├── phase03_20260208T121747Z.json
+│   │   ├── phase03_20260208T122020Z.json
+│   │   ├── phase03_20260208T122046Z.json
+│   │   ├── phase03_20260208T123226Z.json
+│   │   ├── phase03_20260208T123248Z.json
+│   │   ├── phase03_20260208T123501Z.json
+│   │   ├── phase03_20260208T123516Z.json
+│   │   ├── phase03_20260208T124137Z.json
+│   │   ├── phase03_20260208T134643Z.json
+│   │   ├── phase03_20260208T140657Z.json
+│   │   ├── phase03_20260208T173212Z.json
+│   │   ├── phase03_20260208T230132Z.json
+│   │   ├── phase03_artifacts_20260208T130521Z.json
+│   │   └── phase03_artifacts_20260209T172041Z.json
 │   ├── metrics
+│   │   ├── baselines_AF.json
+│   │   ├── baselines_LF.json
+│   │   ├── gnn_AF.json
 │   │   ├── phase01_data_summary.json
 │   │   └── phase02_eda_summary.json
 │   ├── model_artifacts
+│   │   ├── gcn_AF.pt
+│   │   ├── lr_AF_cuml.joblib
+│   │   ├── lr_LF_cuml.joblib
+│   │   ├── rf_AF_cuml.joblib
+│   │   ├── rf_aug_AF_gcn.joblib
+│   │   ├── rf_LF_cuml.joblib
+│   │   ├── scaler_AF.joblib
+│   │   ├── scaler_LF.joblib
+│   │   └── skip_gcn_AF.pt
 │   ├── predictions
 │   └── visualizations
+│       ├── model_comparison_f1.png
+│       ├── normalizedData
+│       │   ├── AF_means_hist.png
+│       │   ├── AF_stds_hist.png
+│       │   ├── AF_train_feature_hist_post.png
+│       │   ├── AF_train_feature_hist_pre.png
+│       │   ├── AF_train_pca_post_norm.png
+│       │   ├── AF_train_pca_pre_norm.png
+│       │   └── normalized_stats_AF.json
 │       └── phase02_eda
 │           ├── class_distribution.png
 │           ├── degree_distribution_log.png
@@ -74,29 +122,48 @@
     ├── __init__.py
     ├── main.py
     ├── phase01_preprocessing.py
+    ├── phase02b_normalization_viz.py
     ├── phase02_eda.py
     ├── phase03_models.py
     ├── phase04_tuning.py
     ├── phase05_eval_infer.py
     ├── __pycache__
     │   ├── baselines.cpython-313.pyc
+    │   ├── config.cpython-310.pyc
     │   ├── config.cpython-313.pyc
+    │   ├── data.cpython-310.pyc
     │   ├── data.cpython-313.pyc
+    │   ├── eval.cpython-310.pyc
     │   ├── eval.cpython-313.pyc
+    │   ├── gnn.cpython-310.pyc
     │   ├── gnn.cpython-313.pyc
+    │   ├── graph_data.cpython-310.pyc
     │   ├── graph_data.cpython-313.pyc
+    │   ├── __init__.cpython-310.pyc
     │   ├── __init__.cpython-313.pyc
+    │   ├── main.cpython-310.pyc
     │   ├── main.cpython-313.pyc
+    │   ├── phase01_preprocessing.cpython-310.pyc
     │   ├── phase01_preprocessing.cpython-313.pyc
+    │   ├── phase02b_normalization_viz.cpython-313.pyc
+    │   ├── phase02_eda.cpython-310.pyc
     │   ├── phase02_eda.cpython-313.pyc
+    │   ├── phase03_models.cpython-310.pyc
     │   ├── phase03_models.cpython-313.pyc
+    │   ├── phase04_tuning.cpython-310.pyc
     │   ├── phase04_tuning.cpython-313.pyc
+    │   ├── phase05_eval_infer.cpython-310.pyc
     │   ├── phase05_eval_infer.cpython-313.pyc
+    │   ├── repro.cpython-310.pyc
     │   ├── repro.cpython-313.pyc
+    │   ├── runlog.cpython-310.pyc
     │   ├── runlog.cpython-313.pyc
+    │   ├── tabular_backend.cpython-310.pyc
+    │   ├── viz.cpython-310.pyc
     │   └── viz.cpython-313.pyc
     ├── repro.py
     ├── runlog.py
+    ├── tabular_backend.py
     └── viz.py
 
-16 directories, 84 files
+17 directories, 150 files

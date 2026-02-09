@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import csv
 import json
+import hashlib
+import pickle
 import warnings
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,6 +35,7 @@ from src.gnn import GCN, SkipGCN, train_gnn
 from src.graph_data import build_graph
 from src.repro import set_seed
 from src.runlog import write_run_manifest
+from src.tabular_backend import TabularBackend, get_tabular_backend
 from src.viz import save_model_comparison_bar
 
 
@@ -87,6 +90,36 @@ def json_safe(x: Any) -> Any:
         return x.isoformat()
     return x
 
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _save_any(obj: Any, path: Path) -> None:
+    """
+    Best-effort persistence across sklearn + (sometimes) cuML objects.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        joblib.dump(obj, path)
+        return
+    except Exception:
+        pass
+    try:
+        with path.open("wb") as f:
+            pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
+        return
+    except Exception:
+        pass
+    # Last resort: if the object has a .save(...) method (some cuML estimators do)
+    save_fn = getattr(obj, "save", None)
+    if callable(save_fn):
+        save_fn(str(path))
+        return
+    raise RuntimeError(f"Could not serialize object to: {path}")
 
 def append_experiment_log(paths: Paths, row: Dict[str, Any]) -> None:
     log_path = paths.results_dir / "logs" / "experiments.csv"
@@ -218,12 +251,15 @@ def run_tabular_models(
     feature_mode: FeatureMode,
     cfg: ExperimentConfig,
     paths: Paths,
+    backend: TabularBackend,
 ) -> dict:
     """
     Tabular:
       - temporal split by time_step
       - forward-chaining CV inside train for HPO (no leakage)
-    NOTE: scikit-learn tabular models run on CPU (no CUDA).
+    NOTE: 
+        - backend="sklearn" => CPU
+        - backend="cuml"    => GPU (if installed), else auto-fallback to sklearn
     """
     df = df_labeled.copy()
     df = df.sort_values(["time_step", "txId"]).reset_index(drop=True)
@@ -257,23 +293,19 @@ def run_tabular_models(
     # ---------------- LR (normalized) ----------------
     def fit_predict_lr(Xtr: np.ndarray, ytr: np.ndarray, Xva: np.ndarray, C_: float) -> np.ndarray:
         scaler = StandardScaler()
-        Xtr_n = scaler.fit_transform(Xtr)
-        Xva_n = scaler.transform(Xva)
+        Xtr_n = scaler.fit_transform(Xtr).astype(np.float32, copy=False)
+        Xva_n = scaler.transform(Xva).astype(np.float32, copy=False)
 
-        lr = _make_logreg(
+        model = backend.train_lr(
+            Xtr_n,
+            ytr,
             C=float(C_),
-            cw=cw,
-            seed=cfg.seed,
-            max_iter=cfg.lr_max_iter,
-            tol=cfg.lr_tol,
+            max_iter=int(cfg.lr_max_iter),
+            tol=float(cfg.lr_tol),
+            class_weight=cw,
+            seed=int(cfg.seed),
         )
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=ConvergenceWarning)
-            warnings.simplefilter("ignore", category=FutureWarning)
-            lr.fit(Xtr_n, ytr)
-
-        return lr.predict(Xva_n)
+        return backend.predict_label(model, Xva_n)
 
     best_lr_C = 1.0
     if bool(cfg.tabular_tune) and cv_splits:
@@ -295,22 +327,18 @@ def run_tabular_models(
                 best_lr_C = float(C_)
 
     lr_scaler = StandardScaler()
-    X_train_lr = lr_scaler.fit_transform(X_train_raw)
-    X_test_lr = lr_scaler.transform(X_test_raw)
-
-    lr_final = _make_logreg(
+    X_train_lr = lr_scaler.fit_transform(X_train_raw).astype(np.float32, copy=False)
+    X_test_lr = lr_scaler.transform(X_test_raw).astype(np.float32, copy=False)
+    lr_final = backend.train_lr(
+        X_train_lr,
+        y_train,
         C=float(best_lr_C),
-        cw=cw,
-        seed=cfg.seed,
-        max_iter=cfg.lr_max_iter,
-        tol=cfg.lr_tol,
+        max_iter=int(cfg.lr_max_iter),
+        tol=float(cfg.lr_tol),
+        class_weight=cw,
+        seed=int(cfg.seed),
     )
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=ConvergenceWarning)
-        warnings.simplefilter("ignore", category=FutureWarning)
-        lr_final.fit(X_train_lr, y_train)
-
-    yhat_lr = lr_final.predict(X_test_lr)
+    yhat_lr = backend.predict_label(lr_final, X_test_lr)
     m_lr = compute_metrics(y_test, yhat_lr)
 
     # ---------------- RF (raw) ----------------
@@ -323,17 +351,17 @@ def run_tabular_models(
         max_depth: int | None,
         min_samples_leaf: int,
     ) -> np.ndarray:
-        rf = RandomForestClassifier(
+        model = backend.train_rf(
+            Xtr,
+            ytr,
             n_estimators=int(n_estimators),
-            max_features=max_features,
+            max_features=cast(MaxFeat, max_features),
             max_depth=max_depth,
             min_samples_leaf=int(min_samples_leaf),
             class_weight=cw,
-            n_jobs=-1,
-            random_state=cfg.seed,
+            seed=int(cfg.seed),
         )
-        rf.fit(Xtr, ytr)
-        return rf.predict(Xva)
+        return backend.predict_label(model, Xva)
 
     best_rf_params: dict[str, Any] = {
         "n_estimators": int(cfg.rf_n_estimators),
@@ -342,13 +370,27 @@ def run_tabular_models(
         "min_samples_leaf": 1,
     }
 
+    # Backend capability: cuML RF ignores some sklearn-style knobs in many versions.
+    backend_cap = {
+        "supports_class_weight": (backend.name != "cuml"),
+        "supports_min_samples_leaf": (backend.name != "cuml"),
+        "supports_max_depth_none": (backend.name != "cuml"),
+    }
+
     if bool(cfg.tabular_tune) and cv_splits:
         rng = np.random.default_rng(cfg.seed)
 
         n_estimators_grid = np.array([200, 400, 600, 800, 1000], dtype=int)
-        max_features_grid: list[MaxFeat] = ["sqrt", 0.3, 0.5, 0.7]
-        max_depth_grid: list[int | None] = [None, 10, 20, 30, 40]
-        min_leaf_grid = np.array([1, 2, 5, 10], dtype=int)
+
+        if backend.name == "cuml":
+            # Only tune knobs that are actually honored by CuMLBackend.train_rf.
+            max_features_grid: list[MaxFeat] = ["sqrt", 0.3, 0.5]
+            max_depth_grid: list[int | None] = [10, 16, 20, 30, 40]  # avoid None
+            min_leaf_grid = np.array([1], dtype=int)
+        else:
+            max_features_grid = ["sqrt", 0.3, 0.5, 0.7]
+            max_depth_grid = [None, 10, 20, 30, 40]
+            min_leaf_grid = np.array([1, 2, 5, 10], dtype=int)
 
         best_score = -1.0
         for _ in tqdm(range(int(cfg.tabular_tune_trials)), desc=f"RF HPO ({feature_mode})", leave=False):
@@ -379,21 +421,23 @@ def run_tabular_models(
                 best_score = score
                 best_rf_params = params
 
-    rf_final = RandomForestClassifier(
+
+    rf_final = backend.train_rf(
+        X_train_raw,
+        y_train,
         n_estimators=int(best_rf_params["n_estimators"]),
         max_features=cast(MaxFeat, best_rf_params["max_features"]),
         max_depth=cast(int | None, best_rf_params["max_depth"]),
         min_samples_leaf=int(best_rf_params["min_samples_leaf"]),
         class_weight=cw,
-        n_jobs=-1,
-        random_state=cfg.seed,
+        seed=int(cfg.seed),
     )
-    rf_final.fit(X_train_raw, y_train)
-    yhat_rf = rf_final.predict(X_test_raw)
+    yhat_rf = backend.predict_label(rf_final, X_test_raw)
     m_rf = compute_metrics(y_test, yhat_rf)
 
     results = {
         "feature_mode": feature_mode,
+        "tabular_backend": backend.name,
         "train_steps": train_steps.tolist(),
         "test_steps": test_steps.tolist(),
         "class_weights": {str(k): float(v) for k, v in cw.items()},
@@ -402,6 +446,7 @@ def run_tabular_models(
             "cv_splits": int(len(cv_splits)),
             "lr_best_C": float(best_lr_C),
             "rf_best_params": best_rf_params,
+            "rf_backend_capability": backend_cap,
         },
         "logreg": m_lr.__dict__,
         "random_forest": m_rf.__dict__,
@@ -414,9 +459,9 @@ def run_tabular_models(
     )
 
     base = paths.results_dir / "model_artifacts"
-    joblib.dump(lr_final, base / f"lr_{feature_mode}.joblib")
-    joblib.dump(lr_scaler, base / f"scaler_{feature_mode}.joblib")
-    joblib.dump(rf_final, base / f"rf_{feature_mode}.joblib")
+    _save_any(lr_final, base / f"lr_{feature_mode}_{backend.name}.joblib")
+    _save_any(lr_scaler, base / f"scaler_{feature_mode}.joblib")
+    _save_any(rf_final, base / f"rf_{feature_mode}_{backend.name}.joblib")
 
     rid = f"tabular_{feature_mode}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
     append_experiment_log(
@@ -467,6 +512,8 @@ def run_gnn_models(
 ) -> dict:
     device = cfg.device
 
+    make_undirected = True
+
     train_steps, test_steps = _temporal_train_test_steps(df_labeled, cfg.train_ratio)
     feature_cols = get_feature_cols(df_full, feature_mode)
 
@@ -478,7 +525,7 @@ def run_gnn_models(
         test_steps=test_steps,
         val_ratio_within_train=float(cfg.val_ratio_within_train),
         normalize=True,
-        make_undirected=True,
+        make_undirected=make_undirected,
     )
     data: Data = bundle.data
 
@@ -503,6 +550,11 @@ def run_gnn_models(
         "test_steps": bundle.test_steps.tolist(),
         "device": device,
         "class_weights_train": {str(k): float(v) for k, v in cw.items()},
+        "graph_build": {
+            "normalize_train_only": True,
+            "make_undirected": bool(make_undirected),
+            "val_ratio_within_train": float(cfg.val_ratio_within_train),
+        },
         "graph": {
             "num_nodes": int(x.size(0)),
             "num_edges": int(edge_index.size(1)),
@@ -756,8 +808,18 @@ def main() -> None:
     paths = Paths()
     cfg = ExperimentConfig()
     ensure_dirs(paths)
-    set_seed(cfg.seed, deterministic_torch=False)
+    set_seed(cfg.seed, deterministic_torch=True)
+    backend = get_tabular_backend()
 
+    torch_info = {
+        "torch_version": str(torch.__version__),
+        "cuda_available": bool(torch.cuda.is_available()),
+        "cuda_device_count": int(torch.cuda.device_count()),
+        "cuda_device_0": (torch.cuda.get_device_name(0) if torch.cuda.is_available() else None),
+        "cudnn_enabled": bool(torch.backends.cudnn.enabled),
+        "cudnn_benchmark": bool(torch.backends.cudnn.benchmark),
+        "cudnn_deterministic": bool(torch.backends.cudnn.deterministic),
+    }
     write_run_manifest(
         paths.results_dir / "logs",
         phase="03",
@@ -769,15 +831,19 @@ def main() -> None:
             paths.processed_dir / "elliptic_full.csv",
             paths.processed_dir / "elliptic_labeled.csv",
         ],
-        extra={"note": f"phase 03: temporal CV tuning for tabular; tuned GNN + optional embedding augmentation; device={cfg.device}"},
+        extra={
+            "note": f"phase 03: temporal CV tuning for tabular; tuned GNN + optional embedding augmentation; device={cfg.device}",
+            "tabular_backend": backend.name,
+            "torch_info": torch_info,
+        },
     )
 
     df_labeled = load_processed_labeled(paths)
     df_full = load_processed_full(paths)
     edges_df = load_edges(paths.raw_dir)
 
-    res_af = run_tabular_models(df_labeled, cast(FeatureMode, "AF"), cfg, paths)
-    _res_lf = run_tabular_models(df_labeled, cast(FeatureMode, "LF"), cfg, paths)
+    res_af = run_tabular_models(df_labeled, cast(FeatureMode, "AF"), cfg, paths, backend=backend)
+    _res_lf = run_tabular_models(df_labeled, cast(FeatureMode, "LF"), cfg, paths, backend=backend)
 
     save_model_comparison_bar(
         {"LR(AF)": res_af["logreg"]["f1_illicit"], "RF(AF)": res_af["random_forest"]["f1_illicit"]},
@@ -789,6 +855,31 @@ def main() -> None:
             fm = cast(FeatureMode, mode)
             run_gnn_models(df_full, df_labeled, edges_df, fm, cfg, paths)
 
+
+    # ---- Phase03 artifact inventory (paths + sha256) ----
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    inv_path = paths.results_dir / "logs" / f"phase03_artifacts_{stamp}.json"
+    artifacts: list[dict[str, Any]] = []
+    for p in sorted(paths.results_dir.rglob("*")):
+        if not p.is_file():
+            continue
+        if p.suffix.lower() in {".json", ".csv", ".png", ".pt", ".joblib"} and str(p).find(str(paths.results_dir)) >= 0:
+            artifacts.append(
+                {
+                    "path": str(p),
+                    "bytes": int(p.stat().st_size),
+                    "sha256": _sha256_file(p),
+                }
+            )
+    inv = {
+        "datetime_utc": datetime.now(timezone.utc).isoformat(),
+        "phase": "03",
+        "device": str(cfg.device),
+        "tabular_backend": backend.name,
+        "artifact_count": len(artifacts),
+        "artifacts": artifacts,
+    }
+    inv_path.write_text(json.dumps(inv, indent=2), encoding="utf-8")
 
 if __name__ == "__main__":
     main()

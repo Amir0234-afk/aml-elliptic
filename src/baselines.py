@@ -8,6 +8,8 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 
+from src.tabular_backend import get_tabular_backend
+
 RFMaxFeatures = float | Literal["sqrt", "log2"]
 
 
@@ -21,14 +23,11 @@ def train_lr(
     X: np.ndarray,
     y: np.ndarray,
     class_weight: Optional[dict[int, float]] = None,
-) -> LogisticRegression:
-    model = LogisticRegression(
-        max_iter=5000,
-        class_weight=class_weight,
-        solver="lbfgs",
-    )
-    model.fit(X, y)
-    return model
+    *,
+    seed: int = 23,
+):
+    backend = get_tabular_backend()
+    return backend.train_lr(X, y, class_weight=class_weight, seed=seed)
 
 
 def train_rf(
@@ -38,18 +37,18 @@ def train_rf(
     max_features: RFMaxFeatures,
     class_weight: Optional[dict[int, float]] = None,
     random_state: int = 23,
-) -> RandomForestClassifier:
-    model = RandomForestClassifier(
+):
+    backend = get_tabular_backend()
+    return backend.train_rf(
+        X,
+        y,
         n_estimators=n_estimators,
         max_features=max_features,
         class_weight=class_weight,
-        n_jobs=-1,
-        random_state=random_state,
+        seed=random_state,
     )
-    model.fit(X, y)
-    return model
 
 
 def predict_proba_positive(model, X: np.ndarray) -> np.ndarray:
-    proba = model.predict_proba(X)
-    return proba[:, 1]
+    backend = get_tabular_backend()
+    return backend.predict_proba_positive(model, X)
