@@ -19,6 +19,9 @@ def _compute_sample_weight(y: np.ndarray, class_weight: Optional[dict[int, float
         w[y == int(cls)] = float(cw)
     return w
 
+def _xgb_device() -> str:
+    dev = os.getenv("AML_DEVICE", "").strip().lower()
+    return "cuda" if dev.startswith("cuda") else "cpu"
 
 @dataclass
 class TabularBackend:
@@ -226,6 +229,23 @@ class XGBoostBackend(TabularBackend):
     def __init__(self) -> None:
         super().__init__(name="xgboost")
 
+    @staticmethod
+    def _colsample_from_max_features(max_features: MaxFeat, n_features: int) -> float:
+        n_features = max(1, int(n_features))
+
+        if isinstance(max_features, str):
+            if max_features == "sqrt":
+                return float(min(1.0, (n_features ** 0.5) / n_features))
+            if max_features == "log2":
+                return float(min(1.0, (np.log2(max(2, n_features))) / n_features))
+            return 1.0
+
+        # Your code treats float as a fraction of features.
+        v = float(max_features)
+        if not np.isfinite(v):
+            return 1.0
+        return float(min(1.0, max(0.01, v)))
+
     def train_lr(
         self,
         X: np.ndarray,
@@ -240,19 +260,35 @@ class XGBoostBackend(TabularBackend):
     ) -> Any:
         import xgboost as xgb  # type: ignore
 
+        y = np.asarray(y, dtype=np.int64)
         sw = _compute_sample_weight(y, class_weight)
 
-        # Rough mapping: larger C => smaller L2
         reg_lambda = float(1.0 / max(float(C), 1e-12))
+        device = _xgb_device()
 
-        model = xgb.XGBClassifier(
-            booster="gblinear",
-            n_estimators=1,
-            reg_lambda=reg_lambda,
-            random_state=int(seed),
-            device="cuda",
-            eval_metric="logloss",
-        )
+        # Linear booster: closest “single-model” analogue to LR here.
+        # Map max_iter -> n_estimators for a controllable optimization budget.
+        try:
+            model = xgb.XGBClassifier(
+                booster="gblinear",
+                n_estimators=int(max_iter),
+                reg_lambda=reg_lambda,
+                random_state=int(seed),
+                n_jobs=-1,
+                device=device,
+                eval_metric="logloss",
+            )
+        except TypeError:
+            # older xgboost without `device=`
+            model = xgb.XGBClassifier(
+                booster="gblinear",
+                n_estimators=int(max_iter),
+                reg_lambda=reg_lambda,
+                random_state=int(seed),
+                n_jobs=-1,
+                eval_metric="logloss",
+            )
+
         model.fit(X, y, sample_weight=sw)
         return model
 
@@ -273,35 +309,51 @@ class XGBoostBackend(TabularBackend):
     ) -> Any:
         import xgboost as xgb  # type: ignore
 
+        y = np.asarray(y, dtype=np.int64)
         sw = _compute_sample_weight(y, class_weight)
+        device = _xgb_device()
 
         depth = 6 if max_depth is None else int(max_depth)
         subsample = 1.0 if max_samples is None else float(max_samples)
 
-        colsample = 1.0
-        if isinstance(max_features, float):
-            colsample = float(max_features)
-        elif isinstance(max_features, str):
-            # approximate sqrt/log2; keep bounded
-            p = max(X.shape[1], 1)
-            if max_features == "sqrt":
-                colsample = float(np.sqrt(p) / p)
-            elif max_features == "log2":
-                colsample = float(np.log2(p) / p)
-            colsample = float(np.clip(colsample, 0.05, 1.0))
+        # Convert sklearn-like max_features -> xgboost colsample_bytree
+        colsample = self._colsample_from_max_features(max_features, X.shape[1])
 
-        model = xgb.XGBClassifier(
-            n_estimators=int(n_estimators),
-            max_depth=int(depth),
-            subsample=float(subsample),
-            colsample_bytree=float(colsample),
-            learning_rate=0.1,
-            reg_lambda=1.0,
-            random_state=int(seed),
-            device="cuda",
-            tree_method="hist",
-            eval_metric="logloss",
-        )
+        # Approximate sklearn params with xgb equivalents where possible.
+        # (Not 1:1; keep stable and predictable.)
+        min_child_weight = max(1, int(min_samples_leaf))
+
+        try:
+            model = xgb.XGBClassifier(
+                n_estimators=int(n_estimators),
+                max_depth=int(depth),
+                subsample=float(subsample),
+                colsample_bytree=float(colsample),
+                min_child_weight=int(min_child_weight),
+                learning_rate=0.1,
+                reg_lambda=1.0,
+                random_state=int(seed),
+                n_jobs=-1,
+                device=device,
+                tree_method="hist",
+                eval_metric="logloss",
+            )
+        except TypeError:
+            tm = "gpu_hist" if device == "cuda" else "hist"
+            model = xgb.XGBClassifier(
+                n_estimators=int(n_estimators),
+                max_depth=int(depth),
+                subsample=float(subsample),
+                colsample_bytree=float(colsample),
+                min_child_weight=int(min_child_weight),
+                learning_rate=0.1,
+                reg_lambda=1.0,
+                random_state=int(seed),
+                n_jobs=-1,
+                tree_method=tm,
+                eval_metric="logloss",
+            )
+
         model.fit(X, y, sample_weight=sw)
         return model
 
