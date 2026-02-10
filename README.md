@@ -138,15 +138,15 @@ Evaluation protocol: temporal split with train steps 1–34 and test steps 35–
 
 Class imbalance:
 <p align="center">
-  <img src="results/visuals/class_distribution.png" width="360" alt="Class imbalance Image">
+  <img src="results/visuals/class_distribution.png" width="450" alt="Class imbalance Image">
 </p>
 Illicit ratio over time:
 <p align="center">
-  <img src="results/visuals/illicit_ratio_over_time.png" width="360" alt="Illicit ratio over time Image">
+  <img src="results/visuals/illicit_ratio_over_time.png" width="450" alt="Illicit ratio over time Image">
 </p>
 Heavy-tailed degree distribution:
 <p align="center">
-  <img src="results/visuals/degree_distribution_log.png" width="360" alt="Heavy-tailed degree distribution Image">
+  <img src="results/visuals/degree_distribution_log.png" width="450" alt="Heavy-tailed degree distribution Image">
 </p>
 ---
 
@@ -154,11 +154,11 @@ Heavy-tailed degree distribution:
 
 Precision–Recall for the Phase04 RF (AF, cuML):
 <p align="center">
-  <img src="results/visuals/pr_rf_AF_cuml.png" width="360" alt="Precision–Recall Image">
+  <img src="results/visuals/pr_rf_AF_cuml.png" width="450" alt="Precision–Recall Image">
 </p>
 Normalized confusion matrix:
 <p align="center">
-  <img src="results/visuals/cm_rf_AF_cuml_norm.png" width="360" alt="confusion matrix Image">
+  <img src="results/visuals/cm_rf_AF_cuml_norm.png" width="450" alt="confusion matrix Image">
 </p>
 ---
 
@@ -170,4 +170,5 @@ Final notebook: `notebooks/AML_Elliptic_Final_Report.ipynb`
 ---
 
 If you build on this work, cite the original [Elliptic dataset](https://www.kaggle.com/datasets/ellipticco/elliptic-data-set) / [AML-GCN paper](https://jiechenjiechen.github.io/pub/aml_gcn.pdf) and (optionally) this [repo](https://github.com/Amir0234-afk/aml-elliptic).
+
 
