@@ -160,7 +160,7 @@ Normalized confusion matrix:
 <p align="center">
   <img src="results/visuals/cm_rf_AF_cuml_norm.png" width="450" alt="confusion matrix Image">
 </p>
----
+
 
 ### Reports and notebook
 
@@ -173,5 +173,6 @@ If you build on this work, cite the original [Elliptic dataset](https://www.kagg
 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 
 
