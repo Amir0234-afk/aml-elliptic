@@ -1,0 +1,140 @@
+{
+  "schema_version": "phase01_v3",
+  "saved_full_dataset": [
+    "data\\processed\\elliptic_full.parquet",
+    {
+      "format": "parquet"
+    }
+  ],
+  "saved_labeled_dataset": [
+    "data\\processed\\elliptic_labeled.parquet",
+    {
+      "format": "parquet"
+    }
+  ],
+  "saved_edges_raw": [
+    "data\\processed\\elliptic_edges.parquet",
+    {
+      "format": "parquet"
+    }
+  ],
+  "saved_edges_kept": [
+    "data\\processed\\elliptic_edges_kept.parquet",
+    {
+      "format": "parquet"
+    }
+  ],
+  "saved_node_index": [
+    "data\\processed\\node_index.parquet",
+    {
+      "format": "parquet"
+    }
+  ],
+  "raw_inputs": {
+    "features": {
+      "path": "data\\raw\\elliptic_txs_features.csv",
+      "exists": true,
+      "bytes": 689683771,
+      "mtime_utc": "2025-12-30T13:35:21.115879+00:00",
+      "sha256": "fd7f83573443c9e302e371d3f110e3b6224160f5d1ed8a287757936127800ff0"
+    },
+    "edgelist": {
+      "path": "data\\raw\\elliptic_txs_edgelist.csv",
+      "exists": true,
+      "bytes": 4470584,
+      "mtime_utc": "2025-12-30T13:35:17.824772+00:00",
+      "sha256": "a35053ba68a98e4382cae2ba65b9d9e36b23b6439e02dff084971b1b72a5156e"
+    },
+    "classes": {
+      "path": "data\\raw\\elliptic_txs_classes.csv",
+      "exists": true,
+      "bytes": 3305144,
+      "mtime_utc": "2025-12-30T13:35:17.781473+00:00",
+      "sha256": "93e2e7b2405c735ba752bf6ba06b947561deddd1f5a8fc91e46f6a4c0e439493"
+    }
+  },
+  "raw_features_rows": 203769,
+  "raw_features_cols": 167,
+  "raw_edges_rows": 234355,
+  "raw_classes_rows": 203769,
+  "full_rows": 203769,
+  "labeled_rows": 46564,
+  "unknown_rows": 157205,
+  "label_counts_full_mapped": {
+    "-1": 157205,
+    "0": 42019,
+    "1": 4545
+  },
+  "label_counts_labeled_mapped": {
+    "0": 42019,
+    "1": 4545
+  },
+  "label_counts_full_raw": {
+    "unknown": 157205,
+    "2": 42019,
+    "1": 4545
+  },
+  "classes_missing_for_txid": 0,
+  "unknown_string_count": 157205,
+  "time_steps_min": 1,
+  "time_steps_max": 49,
+  "time_steps_unique": 49,
+  "num_feature_cols": 165,
+  "strict_elliptic_enabled": true,
+  "edges": {
+    "raw_rows": 234355,
+    "kept_rows": 234355,
+    "dropped_rows": 0
+  },
+  "edge_stats_raw_induced": {
+    "edges_kept": 234355,
+    "self_loops": 0,
+    "duplicate_edges_directed": 0,
+    "deg_min": 1,
+    "deg_max": 473,
+    "deg_mean": 2.3002026804862368,
+    "deg_median": 2.0,
+    "isolated_nodes": 0
+  },
+  "edge_stats_kept_induced": {
+    "edges_kept": 234355,
+    "self_loops": 0,
+    "duplicate_edges_directed": 0,
+    "deg_min": 1,
+    "deg_max": 473,
+    "deg_mean": 2.3002026804862368,
+    "deg_median": 2.0,
+    "isolated_nodes": 0
+  },
+  "edge_stats_raw_directed": {
+    "edges_kept": 234355,
+    "out_deg_min": 1,
+    "out_deg_max": 472,
+    "out_deg_mean": 1.4088490787219334,
+    "out_deg_median": 1.0,
+    "in_deg_min": 1,
+    "in_deg_max": 284,
+    "in_deg_mean": 1.578711594036929,
+    "in_deg_median": 1.0,
+    "zero_out_deg_nodes": 37424,
+    "zero_in_deg_nodes": 55322
+  },
+  "edge_stats_kept_directed": {
+    "edges_kept": 234355,
+    "out_deg_min": 1,
+    "out_deg_max": 472,
+    "out_deg_mean": 1.4088490787219334,
+    "out_deg_median": 1.0,
+    "in_deg_min": 1,
+    "in_deg_max": 284,
+    "in_deg_mean": 1.578711594036929,
+    "in_deg_median": 1.0,
+    "zero_out_deg_nodes": 37424,
+    "zero_in_deg_nodes": 55322
+  },
+  "edge_coverage": {
+    "unique_nodes_in_edges_induced": 203769,
+    "missing_nodes_from_edges": 0,
+    "coverage_ratio": 1.0
+  }
+}

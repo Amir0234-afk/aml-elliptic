@@ -1,0 +1,26 @@
+{
+  "datetime_utc": "2026-02-07T13:11:25.492031+00:00",
+  "inputs": {
+    "full_path": "data\\processed\\elliptic_full.parquet",
+    "labeled": "data\\processed\\elliptic_labeled.parquet",
+    "edges": "data\\processed\\elliptic_edges_kept.parquet",
+    "edges_kind": "processed_edges_kept_parquet"
+  },
+  "full_rows": 203769,
+  "labeled_rows": 46564,
+  "unlabeled_rows": 157205,
+  "time_steps_full": 49,
+  "time_steps_labeled": 49,
+  "label_counts_labeled": {
+    "0": 42019,
+    "1": 4545
+  },
+  "edges_rows": 234355,
+  "unique_nodes_in_edges": 203769,
+  "degree_percentiles": {
+    "p50": 2,
+    "p90": 3,
+    "p99": 13,
+    "max": 473
+  }
+}

@@ -1,12 +1,44 @@
-# Python
-.venv/
-__pycache__/
-*.pyc
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
-# Data (raw/processed)
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.venv/
+venv/
+.env
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# ---- Data (Elliptic is not redistributable via this repo) ----
 data/raw/
 data/processed/
+*.parquet
+*.feather
 
-# Results (optional: keep if you want)
-results/
-outputs/
+# ---- Results: keep only small, reviewable JSON metrics ----
+results/logs/
+results/model_artifacts/
+results/predictions/
+results/visualizations/
+
+# Allow metrics JSONs to be tracked
+!results/metrics/
+!results/metrics/*.json
+
+# ---- Large model artifacts (safety net) ----
+*.pt
+*.pth
+*.ckpt
+*.joblib
+
+# ---- Temporary / helper outputs ----
+pip-check.txt
+project_tree.txt

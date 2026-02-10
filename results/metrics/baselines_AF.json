@@ -1,0 +1,109 @@
+{
+  "feature_mode": "AF",
+  "tabular_backend": "cuml",
+  "train_steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34
+  ],
+  "test_steps": [
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49
+  ],
+  "class_weights": {
+    "0": 0.5654888014527845,
+    "1": 4.317446562680532
+  },
+  "tuning": {
+    "enabled": true,
+    "cv_splits": 5,
+    "lr_best_C": 100.0,
+    "rf_best_params": {
+      "n_estimators": 1000,
+      "max_features": 0.3,
+      "max_depth": 20,
+      "min_samples_leaf": 1
+    },
+    "rf_backend_capability": {
+      "supports_class_weight": false,
+      "supports_min_samples_leaf": false,
+      "supports_max_depth_none": false
+    }
+  },
+  "logreg": {
+    "precision_illicit": 0.21921848119931187,
+    "recall_illicit": 0.8236380424746076,
+    "f1_illicit": 0.34627329192546585,
+    "f1_micro": 0.7979604079184163,
+    "cm": [
+      [
+        12410,
+        3177
+      ],
+      [
+        191,
+        892
+      ]
+    ]
+  },
+  "random_forest": {
+    "precision_illicit": 0.8991981672394044,
+    "recall_illicit": 0.7248384118190212,
+    "f1_illicit": 0.8026584867075665,
+    "f1_micro": 0.9768446310737853,
+    "cm": [
+      [
+        15499,
+        88
+      ],
+      [
+        298,
+        785
+      ]
+    ]
+  }
+}

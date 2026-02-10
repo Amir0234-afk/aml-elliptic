@@ -1,0 +1,150 @@
+{
+  "feature_mode": "AF",
+  "train_steps": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "val_steps": [
+    32,
+    33,
+    34
+  ],
+  "test_steps": [
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49
+  ],
+  "device": "cuda",
+  "class_weights_train": {
+    "0": 0.5623091020158827,
+    "1": 4.512254901960785
+  },
+  "graph_build": {
+    "normalize_train_only": true,
+    "make_undirected": true,
+    "val_ratio_within_train": 0.1
+  },
+  "graph": {
+    "num_nodes": 203769,
+    "num_edges": 468710,
+    "train_nodes_labeled": 27615,
+    "val_nodes_labeled": 2279,
+    "test_nodes_labeled": 16670,
+    "unlabeled_nodes": 157205
+  },
+  "gcn": {
+    "best_val_f1": 0.8133640552995391,
+    "best_epoch": 198,
+    "best_hp": {
+      "hidden_dim": 200,
+      "dropout": 0.0,
+      "lr": 0.002,
+      "weight_decay": 1e-06,
+      "illicit_wscale": 0.5
+    },
+    "test_metrics": {
+      "precision_illicit": 0.5068618481244281,
+      "recall_illicit": 0.5115420129270545,
+      "f1_illicit": 0.5091911764705882,
+      "f1_micro": 0.9359328134373125,
+      "cm": [
+        [
+          15048,
+          539
+        ],
+        [
+          529,
+          554
+        ]
+      ]
+    }
+  },
+  "skip_gcn": {
+    "best_val_f1": 0.8088888888888889,
+    "best_epoch": 199,
+    "best_hp": {
+      "hidden_dim": 100,
+      "dropout": 0.0,
+      "lr": 0.002,
+      "weight_decay": 0.0001,
+      "illicit_wscale": 0.5
+    },
+    "test_metrics": {
+      "precision_illicit": 0.47285067873303166,
+      "recall_illicit": 0.5789473684210527,
+      "f1_illicit": 0.5205479452054794,
+      "f1_micro": 0.9307138572285543,
+      "cm": [
+        [
+          14888,
+          699
+        ],
+        [
+          456,
+          627
+        ]
+      ]
+    }
+  },
+  "rf_on_gnn_embeddings": {
+    "arch": "gcn",
+    "n_estimators": 500,
+    "test_metrics": {
+      "precision_illicit": 0.9928876244665719,
+      "recall_illicit": 0.644506001846722,
+      "f1_illicit": 0.7816349384098544,
+      "f1_micro": 0.9766046790641871,
+      "cm": [
+        [
+          15582,
+          5
+        ],
+        [
+          385,
+          698
+        ]
+      ]
+    }
+  }
+}
