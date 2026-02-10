@@ -16,17 +16,12 @@
 │       └── elliptic_txs_features.csv
 ├── environment_gpu.yml
 ├── notebooks
-│   ├── 01_data_cleaning.ipynb
-│   ├── 02_eda_visualization.ipynb
-│   ├── 03_model_selection.ipynb
-│   ├── 04_model_optimization.ipynb
-│   └── 05_evaluation_inference.ipynb
+│   └── AML_Elliptic_Final_Report.ipynb
 ├── pip-check.txt
 ├── project_tree.txt
 ├── README.md
 ├── reports
 │   ├── env.txt
-│   ├── final_report.md
 │   ├── phase01_preprocessing.md
 │   ├── phase02_eda.md
 │   ├── phase03_model_selection.md
@@ -199,4 +194,4 @@
     ├── tabular_backend.py
     └── viz.py
 
-20 directories, 180 files
+20 directories, 175 files
