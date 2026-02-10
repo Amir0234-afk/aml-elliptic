@@ -148,7 +148,7 @@ Heavy-tailed degree distribution:
 <p align="center">
   <img src="results/visuals/degree_distribution_log.png" width="450" alt="Heavy-tailed degree distribution Image">
 </p>
----
+
 
 ### Model diagnostics (curated)
 
@@ -173,3 +173,4 @@ If you build on this work, cite the original [Elliptic dataset](https://www.kagg
 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
