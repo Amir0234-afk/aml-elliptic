@@ -172,3 +172,4 @@ Final notebook: `notebooks/AML_Elliptic_Final_Report.ipynb`
 If you build on this work, cite the original [Elliptic dataset](https://www.kaggle.com/datasets/ellipticco/elliptic-data-set) / [AML-GCN paper](https://jiechenjiechen.github.io/pub/aml_gcn.pdf) and (optionally) this [repo](https://github.com/Amir0234-afk/aml-elliptic).
 
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
