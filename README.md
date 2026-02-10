@@ -6,7 +6,7 @@ End-to-end experimental pipeline for illicit transaction detection on the Ellipt
 - Optional embedding augmentation: Random Forest on (tabular features ⊕ learned GNN embeddings)
 - Reproducible phase logs + JSON metrics + scientific phase reports
 
-> Dataset context: the Elliptic Bitcoin dataset is a temporal graph of Bitcoin transactions with engineered node features and licit/illicit labels. :contentReference[oaicite:0]{index=0}
+> Dataset context: the Elliptic Bitcoin dataset is a temporal graph of Bitcoin transactions with engineered node features and licit/illicit labels.
 
 ---
 
@@ -33,7 +33,7 @@ elliptic_txs_classes.csv
 ```
 
 
-A common source is Kaggle’s “Elliptic Data Set”. :contentReference[oaicite:1]{index=1}
+A common source is Kaggle’s “Elliptic Data Set”.
 
 ---
 
@@ -42,16 +42,16 @@ A common source is Kaggle’s “Elliptic Data Set”. :contentReference[oaicite
 This repo supports two GPU stacks that do not always align on the same CUDA version:
 
 1) **PyTorch + PyG (GNN stack)**  
-   PyTorch Geometric provides wheels for specific CUDA builds (e.g., `cu128`, `cu129`, etc.). :contentReference[oaicite:2]{index=2}  
+   PyTorch Geometric provides wheels for specific CUDA builds (e.g., `cu128`, `cu129`, etc.). 
    Use `requirements.lock.txt` for a pinned pip environment (includes CUDA 12.8 runtime wheels via `nvidia-*` packages).
 
 2) **RAPIDS cuML (tabular acceleration)**  
-   cuML is supported on Linux/WSL2; installation and CUDA compatibility are driven by RAPIDS releases. :contentReference[oaicite:3]{index=3}  
+   cuML is supported on Linux/WSL2; installation and CUDA compatibility are driven by RAPIDS releases.
    The provided `environment_gpu.yml` is a RAPIDS-focused environment.
 
 ### Recommended setups
 - **Reproducible (single env):** use PyTorch/PyG + sklearn tabular (no cuML).  
-- **Fast tabular:** use RAPIDS/cuML for tabular phases; if you want *both* cuML and PyG GPU in one env, align CUDA versions (see RAPIDS install guidance). :contentReference[oaicite:4]{index=4}
+- **Fast tabular:** use RAPIDS/cuML for tabular phases; if you want *both* cuML and PyG GPU in one env, align CUDA versions (see RAPIDS install guidance).
 
 ---
 
@@ -173,4 +173,5 @@ If you build on this work, cite the original [Elliptic dataset](https://www.kagg
 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 
